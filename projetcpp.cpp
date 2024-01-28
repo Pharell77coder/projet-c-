@@ -1,103 +1,82 @@
 #include <iostream>
-#include <string>
-#include <ctime>
-#include <cstdlib>
+#include <cstdlib> // random
 
-class Entite {
+class Entity {
 public:
-    Entite(const std::string& nom, int pointsDeVie, int pointsAttaque)
-        : nom(nom), pointsDeVie(pointsDeVie), pointsAttaque(pointsAttaque) {}
-
-    virtual ~Entite() {}
-
-    virtual void afficher() const {
-        std::cout << "Nom: " << nom << "\nPoints de vie: " << pointsDeVie << "\nPoints d'attaque: " << pointsAttaque << "\n";
-    }
-
-    virtual bool estEnVie() const {
-        return pointsDeVie > 0;
-    }
-
-    virtual void attaquer(Entite& cible) {
-        std::cout << nom << " attaque " << cible.getNom() << "!\n";
-        cible.recevoirDegats(pointsAttaque);
-    }
-
-    virtual void recevoirDegats(int degats) {
-        pointsDeVie -= degats;
-        if (pointsDeVie < 0) {
-            pointsDeVie = 0;
-        }
-        std::cout << nom << " subit " << degats << " points de dégâts. Points de vie restants: " << pointsDeVie << "\n";
-    }
-
-    const std::string& getNom() const {
-        return nom;
-    }
-
-private:
     std::string nom;
-    int pointsDeVie;
-    int pointsAttaque;
+    Entity() {
+        nom = "Computer";
+    }
+    int choix() {
+        return rand() % 3; // Génère un nombre aléatoire entre 0 et 2
+    }
 };
 
-class Personnage : public Entite {
+class Player : public Entity {
 public:
-    using Entite::Entite;
-
+    int choix() {
+        int num = 0;
+        std::cout << "pierre (0) feuille (1) ou ciseau (2) : ";
+        std::cin >> num;
+        return num;
+    }
 };
 
-class Monstre : public Entite {
-public:
-    using Entite::Entite;
-};
 
-void combat(Personnage joueur, Monstre monstre){
-    std::cout << "=== Informations initiales ===\n";
-    joueur.afficher();
-    monstre.afficher();
-    while (joueur.estEnVie() && monstre.estEnVie()) {
-        int choix;
-        std::cout << "1. Attaquer\n2. Fuir\n";
-        std::cin >> choix;
-        switch (choix) {
-            case 1:
-                std::cout << "Vous attaquez le monstre!\n";
-                joueur.attaquer(monstre);
-                if (!monstre.estEnVie()) {
-                    std::cout << "Vous avez vaincu le monstre!\n";
-                    break;
-                }
+void match(Entity& joueur1, Entity& joueur2) {
+    int scoreJoueur1 = 0;
+    int scoreJoueur2 = 0;
 
-                monstre.attaquer(joueur);
-                if (!joueur.estEnVie()) {
-                    std::cout << "Vous avez été vaincu par le monstre...\n";
-                    break;
-                }
-            
-                break;
-            case 2:
-                std::cout << "Vous fuyez le combat!\n";
-                return;
-            default:
-                std::cout << "Choix invalide!\n";
+    while (scoreJoueur1 < 3 && scoreJoueur2 < 3) {
+        int choixJoueur1 = joueur1.choix();
+        int choixJoueur2 = joueur2.choix();
+
+        std::cout << "Joueur 1 a choisi : " << choixJoueur1 << std::endl;
+        std::cout << "Joueur 2 a choisi : " << choixJoueur2 << std::endl;
+
+        if ((choixJoueur1 == 0 && choixJoueur2 == 2) ||
+            (choixJoueur1 == 1 && choixJoueur2 == 0) ||
+            (choixJoueur1 == 2 && choixJoueur2 == 1)) {
+            std::cout << "Joueur 1 gagne le point !" << std::endl;
+            scoreJoueur1++;
+        } else if ((choixJoueur2 == 0 && choixJoueur1 == 2) ||
+                   (choixJoueur2 == 1 && choixJoueur1 == 0) ||
+                   (choixJoueur2 == 2 && choixJoueur1 == 1)) {
+            std::cout << "Joueur 2 gagne le point !" << std::endl;
+            scoreJoueur2++;
+        } else if (choixJoueur1 == choixJoueur2){
+            std::cout << "Égalité !" << std::endl;
+        } else {
+            std::cout << "Error" << std::endl;
         }
+    }
+
+    if (scoreJoueur1 == 3) {
+        std::cout << joueur1.nom << " gagne la partie !" << std::endl;
+    } else {
+        std::cout << joueur2.nom << " gagne la partie !" << std::endl;
     }
 }
+
 int main() {
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
-
-    Personnage joueur("Héros", 30, 10);
-
-    Monstre gobelin("Gobelin", 20, 5);
-
-    Monstre loup("Loup", 15, 5);
-
-    Monstre slime("Slime", 15, 1);
-
-    combat(joueur, slime);
-    combat(joueur, loup);
-    combat(joueur, gobelin);
-
+    std::string nom1, nom2, choixj2;
+    std::cout << "entrer ton nom ";
+    std::cin >> nom1;
+    Player player1;
+    player1.nom = nom1;
+    std::cout << "voulez-vous jouer contre un ami ? (y) ";
+    std::cin >> choixj2;
+    if (choixj2 == "y" || choixj2 == "Y") {
+        std::cout << "entrer ton nom ";
+        std::cin >> nom2;
+        Player player2;
+        player2.nom = nom2;
+        match(player1, player2);
+    } else {
+        std::cout << "Joueur 2 est l'ordinateur." << std::endl;
+        Entity player2;
+        match(player1, player2);
+    }
+    // Ajout de la rejouabilité plus tard
     return 0;
 }
